@@ -3,6 +3,93 @@ from typing import Dict, Any, Callable
 from .metadata import MDataNames as M
 
 
+def format_name(name: str, opts: Dict[str, Any] = {}) -> str:
+    """
+    Format the `name` a data field.
+
+    Args:
+        name (str): the name of the data field
+        opts (Dict[str, Any]): options dictionary
+
+    Returns:
+        str: line(s) containg the formatted `name`
+
+    Supported options are:
+        `comment_text` (str): the character(s) that will be placed at the
+            begining of the line
+        `spacer` (str) = `" "`: the character(s) placed between the
+            `comment_text` and the name
+    """
+    comment_text = opts.get("comment_text", "")
+    spacer = opts.get("spacer", " ")
+    # TODO: centered text
+    # TODO: tags on the right
+    return f"{comment_text}{spacer}{name}:\n"
+
+
+def format_description(description: str, opts: Dict[str, Any] = {}) -> str:
+    """
+    Format `description` part of a data field.
+
+    Args:
+        description (str): `description` to be formatted
+        opts (Dict[str, Any]): options dictionary
+
+    Returns:
+        str: line(s) containg the formatted `description`
+
+    Supported options are:
+        `comment_text` (str): the character(s) that will be placed at the
+            begining of the line
+        `indent_text (str) = `"  "`: indentation of the description paragraph
+        `wrap (bool) = True`: wrapping lines to a given width
+        `width` (int): width of the formatted text
+        `dedent` (bool) = `True`: remove any common leading whitespace
+    """
+    comment_text = opts.get("comment_text", "")
+    dedent: bool = opts.get("dedent", True)
+    wrap: bool = opts.get("wrap", True)
+    indent_text: str = opts.get("indent_text", "  ")
+
+    if dedent:
+        description = tw.dedent(description)
+
+    if wrap:
+        width: int = opts.get("width", 80) - len(comment_text)
+        description = tw.fill(
+            description,
+            width=width,
+            initial_indent=f"{indent_text}",  # first line indentation
+            subsequent_indent=f"{indent_text}",  # latter lines indentation
+            break_long_words=True,
+        )
+    elif indent_text != "":
+        # What if i want to indent multpiple lines without wrapping
+        description = indent_text + indent_text.join(
+            description.splitlines(True)
+        )
+
+    if comment_text != "":
+        description = comment_text + comment_text.join(
+            description.splitlines(True)
+        )
+
+    return "{}\n".format(description)
+
+
+# format(
+#         tw.fill(
+#             tw.dedent(description),
+#             width=width,
+#             initial_indent=f"{comment_text}{indent_text}",
+#             subsequent_indent=f"{comment_text}{indent_text}",
+#             break_long_words=break_long_words,
+#             # tabsize=tabsize,
+#             # expand_tabs=True,
+#         )
+#     )
+
+
 def f_metadata(mdata: Dict[str, Any], comment_text: str = "#") -> str:
 
     # find the longest string in the data
@@ -74,7 +161,7 @@ def f_description(
     indent_text: str = "    ",
     comment_text="#",
     break_long_words: bool = False,
-    tabsize: int = 4,
+    # tabsize: int = 4,
 ) -> str:
     return "{}\n".format(
         tw.fill(
@@ -83,7 +170,7 @@ def f_description(
             initial_indent=f"{comment_text}{indent_text}",
             subsequent_indent=f"{comment_text}{indent_text}",
             break_long_words=break_long_words,
-            tabsize=tabsize,
-            expand_tabs=True,
+            # tabsize=tabsize,
+            # expand_tabs=True,
         )
     )
